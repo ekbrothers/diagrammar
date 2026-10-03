@@ -25,7 +25,8 @@ import {
 import { esc, hash, isSafeCssValue, num, safeHref, warnOnce } from './util.js';
 
 export * from './theme.js';
-export { registerIcon, builtInIcons, type IconDefinition, type IconMap } from './icons.js';
+export { registerIcon, registerIconPack, builtInIcons, type IconDefinition, type IconMap } from './icons.js';
+export { iconFromSvg, iconifyPack, SvgIconError, type IconifySet, type IconifyOptions } from './svg-icon.js';
 
 /** Draws the outline of a custom node type. Text, icon, and status badge are added around it. */
 export type NodeFrameRenderer = (node: DiagramNode, box: LaidOutNode) => string;
@@ -68,6 +69,7 @@ interface Context {
   options: RenderOptions;
   nodes: Map<string, DiagramNode>;
   seenWarnings: Set<string>;
+  iconCount: number;
 }
 
 const decl = (vars: Record<string, string>) =>
@@ -115,6 +117,7 @@ function buildCss(scope: string, theme: Theme, mode: NonNullable<RenderOptions['
     `${s} .group-box{fill:var(--dg-group-fill);stroke:var(--dg-group-stroke);stroke-width:1px}`,
     `${s} .group-label{fill:var(--dg-text-muted);font-size:12px;font-weight:600}`,
     `${s} .canvas{fill:var(--dg-bg)}`,
+    `${s}.dim .node:not(.hot),${s}.dim .edge:not(.hot),${s}.dim .edge-label-group:not(.hot){opacity:.3}`,
     `${s} a{cursor:pointer}`,
     `${s} a:focus-visible{outline:2px solid var(--dg-primary-stroke);outline-offset:3px}`,
   );
@@ -175,10 +178,23 @@ function iconMarkup(name: string, x: number, y: number, ctx: Context): string {
     );
   }
   const parts = (icon.viewBox ?? '0 0 24 24').split(/[\s,]+/).map(Number);
-  const [vx, vy, vw] = parts.length === 4 && parts.every(Number.isFinite) && parts[2]! > 0 ? parts : [0, 0, 24];
-  const scale = ICON_SIZE / vw!;
+  const valid = parts.length === 4 && parts.every(Number.isFinite) && parts[2]! > 0 && parts[3]! > 0;
+  const [vx, vy, vw, vh] = valid ? parts : [0, 0, 24, 24];
+  const scale = ICON_SIZE / Math.max(vw!, vh!);
+  const ox = x + (ICON_SIZE - vw! * scale) / 2;
+  const oy = y + (ICON_SIZE - vh! * scale) / 2;
+  const transform = `translate(${num(ox)} ${num(oy)}) scale(${num(scale)}) translate(${-vx!} ${-vy!})`;
+  if (icon.color) {
+    // Gradients and clip paths are referenced by id, so each use needs ids of its own.
+    const unique = `${ctx.scope}-i${ctx.iconCount++}-`;
+    const body = icon.body
+      .replace(/\bid="([^"]*)"/g, `id="${unique}$1"`)
+      .replace(/url\(#([^)]*)\)/g, `url(#${unique}$1)`)
+      .replace(/\bhref="#([^"]*)"/g, `href="#${unique}$1"`);
+    return `<g class="icon" transform="${transform}">${body}</g>`;
+  }
   return (
-    `<g class="icon" transform="translate(${num(x)} ${num(y)}) scale(${num(scale)}) translate(${-vx!} ${-vy!})" ` +
+    `<g class="icon" transform="${transform}" ` +
     `fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon.body}</g>`
   );
 }
@@ -314,10 +330,11 @@ function renderEdge(edge: DiagramEdge | undefined, laid: LaidOutEdge, ctx: Conte
   if (arrow === 'start' || arrow === 'both') heads += arrowHead(pts[0]!, pts[1]!);
   const role = edge?.role && edge.role !== 'default' ? ` role-${edge.role}` : '';
   const line = `<path class="edge-line"${DASH[edge?.style ?? 'solid'] ?? ''} d="${pathData(pts, laid.routing)}"/>`;
-  return `<g class="edge${role}" data-id="${esc(laid.id)}"><title>${esc(edgeSummary(edge, laid, ctx))}</title>${line}${heads}</g>`;
+  return `<g class="edge${role}" data-id="${esc(laid.id)}" data-from="${esc(laid.from)}" data-to="${esc(laid.to)}"><title>${esc(edgeSummary(edge, laid, ctx))}</title>${line}${heads}</g>`;
 }
 
 interface LabelBox {
+  edge: string;
   x: number;
   y: number;
   width: number;
@@ -330,7 +347,7 @@ function labelBox(edge: DiagramEdge | undefined, laid: LaidOutEdge): LabelBox | 
   if (lines.length === 0 || !laid.labelPosition) return undefined;
   const width = Math.max(...lines.map((l) => textWidth(l, EDGE_LABEL_METRICS))) + 10;
   const height = lines.length * EDGE_LABEL_LINE + 4;
-  return { x: laid.labelPosition.x - width / 2, y: laid.labelPosition.y - height / 2, width, height, lines };
+  return { edge: laid.id, x: laid.labelPosition.x - width / 2, y: laid.labelPosition.y - height / 2, width, height, lines };
 }
 
 function renderLabel(box: LabelBox): string {
@@ -340,8 +357,9 @@ function renderLabel(box: LabelBox): string {
     .map((line, i) => `<tspan x="${num(cx)}" y="${num(top + i * EDGE_LABEL_LINE + EDGE_LABEL_LINE / 2)}">${esc(line)}</tspan>`)
     .join('');
   return (
+    `<g class="edge-label-group" data-edge="${esc(box.edge)}">` +
     `<rect class="edge-label-box" x="${num(box.x)}" y="${num(box.y)}" width="${num(box.width)}" height="${num(box.height)}" rx="3"/>` +
-    `<text class="edge-label" text-anchor="middle" dominant-baseline="central">${tspans}</text>`
+    `<text class="edge-label" text-anchor="middle" dominant-baseline="central">${tspans}</text></g>`
   );
 }
 
@@ -386,6 +404,7 @@ export function renderSvg(diagram: Diagram, layout: Layout, options: RenderOptio
     options,
     nodes: new Map(diagram.nodes.map((n) => [n.id, n])),
     seenWarnings: new Set(),
+    iconCount: 0,
   };
   const edges = new Map((diagram.edges ?? []).map((e) => [e.id, e]));
 

@@ -4,6 +4,8 @@ import * as react from './react.tsx';
 import * as layers from './layers.ts';
 import * as roles from './roles.ts';
 import * as icons from './icons.ts';
+import * as logosExample from './logos.ts';
+import * as cloud from './cloud.ts';
 import * as tree from './tree.ts';
 import * as radial from './radial.ts';
 import * as pinned from './pinned.ts';
@@ -56,6 +58,20 @@ export const examples: Example[] = [
     blurb: 'Ten icons are built in. Add your own with registerIcon() or the icons option.',
     file: 'icons.ts',
     ...icons,
+  },
+  {
+    slug: 'logos',
+    title: 'Logos',
+    blurb: 'Logos keep their own colors instead of following the text color. A few popular ones come bundled (diagrammar/logos), and iconFromSvg() turns your own SVG file into an icon after removing anything unsafe.',
+    file: 'logos.ts',
+    ...logosExample,
+  },
+  {
+    slug: 'cloud',
+    title: 'Cloud diagrams',
+    blurb: 'Nested groups work as regions, VPCs, and subnets. Icons come from a pack you register under a prefix (aws:ec2). Vendor icon sets are not bundled; import the official ones with the command in the code.',
+    file: 'cloud.ts',
+    ...cloud,
   },
   {
     slug: 'tree',

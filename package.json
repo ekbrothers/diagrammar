@@ -27,6 +27,11 @@
       "import": "./dist/react.js",
       "require": "./dist/react.cjs"
     },
+    "./interactive": {
+      "types": "./dist/interactive.d.ts",
+      "import": "./dist/interactive.js",
+      "require": "./dist/interactive.cjs"
+    },
     "./layout": {
       "types": "./dist/layout.d.ts",
       "import": "./dist/layout.js",
@@ -42,6 +47,11 @@
       "import": "./dist/server.js",
       "require": "./dist/server.cjs"
     },
+    "./logos": {
+      "types": "./dist/logos.d.ts",
+      "import": "./dist/logos.js",
+      "require": "./dist/logos.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -56,7 +66,8 @@
     "check": "npm run typecheck && npm run lint && npm run test:coverage && npm run build",
     "prepublishOnly": "npm run check",
     "release": "node scripts/release.ts",
-    "examples": "tsx scripts/examples.ts"
+    "examples": "tsx scripts/examples.ts",
+    "logos": "node scripts/logos.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -65,8 +76,10 @@
     "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^5.0.3",
     "eslint": "^10.12.0",
+    "jsdom": "^29.1.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "simple-icons": "^16.33.0",
     "tsup": "^8.5.1",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
@@ -99,5 +112,8 @@
     "react": {
       "optional": true
     }
+  },
+  "bin": {
+    "diagrammar": "./dist/cli.js"
   }
 }

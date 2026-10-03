@@ -24,7 +24,7 @@
 
 ## 5. Elements and theming
 
-- [ ] 5.1 Implement built-in node types, rich content, ports, and the icon registry; verify each type with a snapshot and a missing-icon case.
+- [ ] 5.1 Implement built-in node types, rich content, ports, and the icon registry; verify each type with a snapshot and a missing-icon case. Done so far: node types, icon registry with color icons and prefixed packs. Ports remain.
 - [x] 5.2 Implement edge styles, arrowheads, and labels; verify rendered output for each style.
 - [x] 5.3 Implement custom element registration; verify a custom node takes part in layout and theming.
 - [x] 5.4 Implement design tokens, light and dark modes, default and high-contrast themes, and per-element overrides; verify contrast ratios and no first-paint flash.
@@ -39,7 +39,7 @@
 ## 7. Interaction and animation
 
 - [ ] 7.1 Implement pan, zoom, fit, and reset with touch-safe page scrolling; verify one-finger scroll scrolls the page and pinch zooms.
-- [ ] 7.2 Implement highlighting, collapsible groups, details on demand, and events; verify each in component tests.
+- [ ] 7.2 Implement highlighting, collapsible groups, details on demand, and events; verify each in component tests. Done so far: hover highlighting and node click and hover events (InteractiveDiagram). Collapsible groups and details on demand remain.
 - [ ] 7.3 Implement walkthrough mode including the all-steps print view; verify step order and print output.
 - [ ] 7.4 Implement entrance, flow, and transition animation with reduced-motion support; verify nothing animates when the preference is set.
 - [ ] 7.5 Test large diagrams; verify a 500-node diagram stays interactive within the performance budget.

@@ -4,7 +4,7 @@ Polished, accessible, server-rendered SVG diagrams for the web.
 
 You describe a diagram as data (or React components). diagrammar validates it, lays it out with [ELK](https://github.com/kieler/elkjs), and returns one self-contained SVG string. No client script, no DOM needed, and the same input always gives the same output.
 
-Status: early development. Schema, authoring, layout, static rendering, and theming work. Interaction, animation, swimlanes, ports, and export are still ahead. See [the task list](openspec/changes/bootstrap-diagram-library/tasks.md).
+Status: early development. Schema, authoring, layout, static rendering, theming, icons and logos, and basic interaction work. Animation, swimlanes, ports, and PNG export are still ahead. See [the task list](openspec/changes/bootstrap-diagram-library/tasks.md).
 
 ## Install
 
@@ -34,11 +34,67 @@ const svg = await renderDiagram({
 | --- | --- |
 | `diagrammar` | The schema, validation, and `defineDiagram()` |
 | `diagrammar/react` | `<Diagram>`, `<Node>`, `<Edge>`, `<Group>`, `<Layer>`, `definitionFromElement()`, `DiagramView` |
+| `diagrammar/interactive` | `InteractiveDiagram`: hover highlighting and click callbacks (a client component) |
 | `diagrammar/layout` | `layoutDiagram()` for automatic layout (bundles ELK) |
-| `diagrammar/render` | `renderSvg()`, themes, and icons. No ELK, so it stays small |
+| `diagrammar/render` | `renderSvg()`, themes, icons, `iconFromSvg()`, `iconifyPack()`. No ELK, so it stays small |
 | `diagrammar/server` | `renderDiagram()`: validate, lay out, and render in one call |
+| `diagrammar/logos` | A few bundled brand logos (Docker, PostgreSQL, Redis, and others) |
+| `diagrammar icons import` | A command that turns a folder or zip of SVGs into an icon module |
 
 To keep ELK out of your page bundle, compute the layout at build time and pass the saved result to `renderSvg()` or `DiagramView`.
+
+## Export a file, or put it on a website
+
+The same diagram works both ways.
+
+**One SVG file per diagram.** `renderDiagram` returns a complete SVG string. Pass `background: true` so it has a solid backdrop and reads well when opened on its own. Pass `mode: 'light'` or `'dark'`, or leave it out and the SVG follows the viewer's setting.
+
+```ts
+import { writeFileSync } from 'node:fs';
+import { renderDiagram } from 'diagrammar/server';
+
+writeFileSync('architecture.svg', await renderDiagram(diagram, { background: true }));
+```
+
+**Inline on a page, with links.** Give a node an `href` and it becomes a real link. Give it `detail` and it gets a tooltip. `DiagramView` puts the SVG in your server-rendered HTML, so it shows up before any script runs.
+
+```tsx
+import { DiagramView } from 'diagrammar/react';
+import { layoutDiagram } from 'diagrammar/layout';
+
+const layout = await layoutDiagram(diagram); // at build time or on the server
+<DiagramView diagram={diagram} layout={layout} />;
+```
+
+**Hover and click.** `InteractiveDiagram` takes the same props and adds highlighting: hover or focus a node and everything not connected to it dims. `onNodeClick` and `onNodeHover` let you open a side panel, filter a table, or whatever the page needs. It's a client component, so compute the layout on the server and pass it down as a prop.
+
+```tsx
+'use client';
+import { InteractiveDiagram } from 'diagrammar/interactive';
+
+<InteractiveDiagram diagram={diagram} layout={layout} onNodeClick={(node) => openPanel(node.id)} />;
+```
+
+Links in the diagram stay links. Nodes that have an `href` navigate as usual, and nodes without one become keyboard-focusable buttons when you pass `onNodeClick`.
+
+Two things to know. The styles are in a `<style>` element inside the SVG, so a strict Content-Security-Policy that blocks inline styles will stop them. And if you put the same diagram on a page twice, give each one a different `id` option so the scoped styles don't collide.
+
+## Icons, logos, and cloud diagrams
+
+Built-in icons are single-color outlines that follow the text color. Logos are different: they keep their own colors.
+
+- **Bundled logos.** `import { logos } from 'diagrammar/logos'`, then `registerIconPack('logo', logos)` once and write `icon: 'logo:postgresql'`. They come from [Simple Icons](https://simpleicons.org) (CC0). The artwork is public domain, but the logos are still trademarks of their owners, so use them to refer to those products and follow each owner's brand guidelines.
+- **Your own SVG.** `iconFromSvg(text)` turns a file into an icon. It rebuilds the markup from a short list of safe shapes, so scripts, event handlers, text, and links to other files are rejected with an error that says why.
+- **Iconify.** `iconifyPack(set, { include: ['name'] })` converts an [Iconify](https://iconify.design) JSON set, so any set it hosts can be used. Check each set's license.
+- **Cloud icons.** AWS, Google Cloud, and Azure publish official icon sets with their own terms, so diagrammar doesn't include them. Download the set you want and import it once:
+
+  ```sh
+  npx diagrammar icons import ./Architecture-Icons.zip --prefix aws --match "/64/" --strip "^(Amazon|AWS)-"
+  ```
+
+  That writes `icons/aws.ts`. Register it with `registerIconPack('aws', aws)` and use `icon: 'aws:ec2'`. The command accepts files, folders, and zips, and skips anything it can't make safe, with the reason.
+
+Groups nest, so regions, VPCs, and subnets are just groups inside groups. See the [cloud example](#cloud-diagrams) below and the [pattern gallery](docs/patterns.md) for round-robin, push, pull, publish and subscribe, circuit breaker, CQRS, and more.
 
 ## Examples
 
@@ -216,6 +272,122 @@ const options: RenderDiagramOptions = {
     bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
   },
 };
+```
+
+### Logos
+
+Logos keep their own colors instead of following the text color. A few popular ones come bundled (diagrammar/logos), and iconFromSvg() turns your own SVG file into an icon after removing anything unsafe.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/examples/logos.dark.svg">
+  <img alt="A stack drawn with logos. A browser talks to a Next.js app, which uses Postgres, Redis, Stripe, and an in-house service." src="docs/examples/logos.light.svg">
+</picture>
+
+```ts
+import { defineDiagram } from 'diagrammar';
+import { logos } from 'diagrammar/logos';
+import { iconFromSvg, registerIcon, registerIconPack } from 'diagrammar/render';
+import type { RenderDiagramOptions } from 'diagrammar/server';
+
+// Logos keep their own colors. Bundled ones are registered under a prefix of your choice.
+registerIconPack('logo', logos);
+
+// Your own logo: iconFromSvg() rebuilds the file from safe shapes and rejects scripts and external links.
+registerIcon(
+  'acme',
+  iconFromSvg(`
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f59e0b"/>
+          <stop offset="1" stop-color="#ef4444"/>
+        </linearGradient>
+      </defs>
+      <circle cx="16" cy="16" r="14" fill="url(#g)"/>
+      <path d="M9 22 16 8l7 14h-4l-3-6-3 6z" fill="#fff"/>
+    </svg>`),
+);
+
+const diagram = defineDiagram({
+  title: 'A stack drawn with logos',
+  description: 'A browser talks to a Next.js app, which uses Postgres, Redis, Stripe, and an in-house service.',
+  nodes: [
+    { id: 'web', label: 'Storefront', subtitle: 'React', icon: 'logo:react' },
+    { id: 'app', label: 'App', subtitle: 'Next.js', icon: 'logo:nextjs', role: 'primary' },
+    { id: 'db', label: 'Orders', subtitle: 'PostgreSQL', icon: 'logo:postgresql' },
+    { id: 'cache', label: 'Sessions', subtitle: 'Redis', icon: 'logo:redis' },
+    { id: 'pay', label: 'Payments', subtitle: 'Stripe', icon: 'logo:stripe' },
+    { id: 'rules', label: 'Pricing rules', subtitle: 'In-house', icon: 'acme' },
+  ],
+  edges: [
+    { id: 'e1', from: 'web', to: 'app' },
+    { id: 'e2', from: 'app', to: 'db' },
+    { id: 'e3', from: 'app', to: 'cache' },
+    { id: 'e4', from: 'app', to: 'pay' },
+    { id: 'e5', from: 'app', to: 'rules' },
+  ],
+});
+
+const options: RenderDiagramOptions = {};
+```
+
+### Cloud diagrams
+
+Nested groups work as regions, VPCs, and subnets. Icons come from a pack you register under a prefix (aws:ec2). Vendor icon sets are not bundled; import the official ones with the command in the code.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/examples/cloud.dark.svg">
+  <img alt="Web app on AWS. Visitors reach CloudFront, which serves static files from S3 and sends requests to a load balancer in front of two app servers and a database." src="docs/examples/cloud.light.svg">
+</picture>
+
+```ts
+import { defineDiagram } from 'diagrammar';
+import { registerIconPack } from 'diagrammar/render';
+import type { RenderDiagramOptions } from 'diagrammar/server';
+
+// These are plain stand-in icons so the example is self-contained. To use the official AWS
+// Architecture Icons, download them from AWS and run:
+//   diagrammar icons import ./Architecture-Icons.zip --prefix aws --match "/64/" --strip "^(Amazon|AWS)-"
+// then register the generated module the same way and keep the same names.
+registerIconPack('aws', {
+  cloudfront: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  alb: '<circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M12 11 5 17M12 11l7 6"/>',
+  ec2: '<rect x="6" y="6" width="12" height="12" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>',
+  rds: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  s3: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6l2 14h12l2-14"/>',
+});
+
+const diagram = defineDiagram({
+  title: 'Web app on AWS',
+  description: 'Visitors reach CloudFront, which serves static files from S3 and sends requests to a load balancer in front of two app servers and a database.',
+  groups: [
+    { id: 'region', label: 'us-east-1' },
+    { id: 'vpc', label: 'VPC 10.0.0.0/16', parent: 'region' },
+    { id: 'public', label: 'Public subnet', parent: 'vpc' },
+    { id: 'private', label: 'Private subnets', parent: 'vpc' },
+    { id: 'data', label: 'Data subnet', parent: 'vpc' },
+  ],
+  nodes: [
+    { id: 'users', label: 'Visitors', type: 'actor' },
+    { id: 'cdn', label: 'CloudFront', group: 'region', icon: 'aws:cloudfront' },
+    { id: 'assets', label: 'Static files', subtitle: 'S3', group: 'region', icon: 'aws:s3' },
+    { id: 'alb', label: 'Load balancer', subtitle: 'ALB', group: 'public', icon: 'aws:alb' },
+    { id: 'app1', label: 'App', subtitle: 'EC2, zone a', group: 'private', icon: 'aws:ec2' },
+    { id: 'app2', label: 'App', subtitle: 'EC2, zone b', group: 'private', icon: 'aws:ec2' },
+    { id: 'db', label: 'Orders', subtitle: 'RDS Postgres', group: 'data', icon: 'aws:rds', role: 'primary' },
+  ],
+  edges: [
+    { id: 'e1', from: 'users', to: 'cdn' },
+    { id: 'e2', from: 'cdn', to: 'assets', label: '/static' },
+    { id: 'e3', from: 'cdn', to: 'alb', label: '/api' },
+    { id: 'e4', from: 'alb', to: 'app1' },
+    { id: 'e5', from: 'alb', to: 'app2' },
+    { id: 'e6', from: 'app1', to: 'db' },
+    { id: 'e7', from: 'app2', to: 'db' },
+  ],
+});
+
+const options: RenderDiagramOptions = {};
 ```
 
 ### Tree layout

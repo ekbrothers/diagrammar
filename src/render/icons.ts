@@ -1,10 +1,14 @@
 /**
- * An icon is SVG markup drawn on a 24 by 24 grid, in outline style. It is inserted as-is,
- * so only register markup you trust. Strokes should use currentColor.
+ * An icon is SVG markup. By default it is an outline icon drawn on a 24 by 24 grid and inserted
+ * as-is, so only register markup you trust. Strokes should use currentColor.
+ *
+ * Set color to draw the markup with its own paint (a logo, or a multi-color icon) instead of the
+ * outline style. Use iconFromSvg() to build one from an SVG file safely.
  */
 export interface IconDefinition {
   body: string;
   viewBox?: string;
+  color?: boolean;
 }
 
 export type IconMap = Record<string, string | IconDefinition>;
@@ -33,6 +37,11 @@ const normalize = (icon: string | IconDefinition): IconDefinition => (typeof ico
 /** Registers an icon for every diagram rendered afterwards. */
 export function registerIcon(name: string, icon: string | IconDefinition): void {
   registered[name] = normalize(icon);
+}
+
+/** Registers every icon in a set under "prefix:name". registerIconPack('aws', icons) makes 'aws:ec2' available. */
+export function registerIconPack(prefix: string, icons: IconMap): void {
+  for (const [name, icon] of Object.entries(icons)) registerIcon(`${prefix}:${name}`, icon);
 }
 
 export function lookupIcon(name: string, local?: IconMap): IconDefinition | undefined {
