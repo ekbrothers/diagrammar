@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Diagrammar is a public, open-source (MIT) TypeScript library for building
+  polished, feature-rich diagrams rendered as SVG. It is consumed first by a
+  Next.js 14 App Router site (React 18, MDX, Tailwind) but must not depend on it.
+  Everything committed here is public: no private URLs, credentials, personal
+  data, or references to private repositories in specs, examples, or tests.
+  Requirements describe observable behavior; library and framework choices
+  belong in design.md.
+
+rules:
+  specs:
+    - Use SHALL/MUST. One behavior per requirement; put edge cases in scenarios.
+    - Keep requirements testable. Prefer measurable thresholds over adjectives.
+  proposal:
+    - State what is out of scope.
+  tasks:
+    - Each task states how to verify it, and lands its own tests and docs.

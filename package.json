@@ -1,0 +1,10 @@
+{
+  "name": "diagrammar",
+  "version": "0.0.0",
+  "description": "Polished, accessible, server-rendered SVG diagrams for the web.",
+  "license": "MIT",
+  "author": "Evan Brothers",
+  "private": true,
+  "keywords": ["diagram", "svg", "react", "visualization", "layout"],
+  "sideEffects": false
+}
