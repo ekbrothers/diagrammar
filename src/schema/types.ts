@@ -12,6 +12,13 @@ export const arrowSchema = z.enum(['end', 'start', 'both', 'none']);
 
 const idSchema = z.string().min(1);
 
+// Per-node color overrides. Values are CSS colors or var(--host-variable) references.
+export const colorsSchema = z.strictObject({
+  fill: z.string().optional(),
+  stroke: z.string().optional(),
+  text: z.string().optional(),
+});
+
 export const nodeSchema = z.strictObject({
   id: idSchema,
   type: z.string().min(1).optional(),
@@ -23,6 +30,7 @@ export const nodeSchema = z.strictObject({
   layer: idSchema.optional(),
   href: z.string().optional(),
   detail: z.string().optional(),
+  colors: colorsSchema.optional(),
   x: z.number().finite().optional(),
   y: z.number().finite().optional(),
   width: z.number().positive().optional(),

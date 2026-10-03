@@ -13,11 +13,11 @@ import {
   type Point,
 } from './types.js';
 
+import { ACTOR_EXTRA, DATABASE_EXTRA, ICON_SPACE, NODE_PAD_X, NODE_PAD_Y } from '../metrics.js';
+
 export * from './types.js';
 export { wrapText, textWidth, DEFAULT_METRICS, type TextMetrics, type WrappedText } from './text.js';
 
-const NODE_PAD_X = 14;
-const NODE_PAD_Y = 10;
 const MIN_NODE_WIDTH = 64;
 const MIN_NODE_HEIGHT = 36;
 const GROUP_LABEL_HEIGHT = 24;
@@ -50,7 +50,9 @@ interface Size {
 }
 
 function sizeNode(node: DiagramNode, maxWidth: number): Size {
-  const limit = (node.width ?? maxWidth) - NODE_PAD_X * 2;
+  const iconSpace = node.icon && node.type !== 'actor' ? ICON_SPACE : 0;
+  const extra = node.type === 'actor' ? ACTOR_EXTRA : node.type === 'database' ? DATABASE_EXTRA : 0;
+  const limit = (node.width ?? maxWidth) - NODE_PAD_X * 2 - iconSpace;
   const label = wrapText(node.label ?? '', limit, DEFAULT_METRICS);
   const subtitle = wrapText(node.subtitle ?? '', limit, { ...DEFAULT_METRICS, fontSize: 12 });
   const gap = label.lines.length > 0 && subtitle.lines.length > 0 ? 4 : 0;
@@ -58,8 +60,8 @@ function sizeNode(node: DiagramNode, maxWidth: number): Size {
   const contentWidth = Math.max(label.width, subtitle.width);
   const contentHeight = label.height + gap + subtitle.height;
   return {
-    width: node.width ?? Math.max(MIN_NODE_WIDTH, contentWidth + NODE_PAD_X * 2),
-    height: node.height ?? Math.max(MIN_NODE_HEIGHT, contentHeight + NODE_PAD_Y * 2),
+    width: node.width ?? Math.max(MIN_NODE_WIDTH, contentWidth + NODE_PAD_X * 2 + iconSpace),
+    height: node.height ?? Math.max(MIN_NODE_HEIGHT, contentHeight + NODE_PAD_Y * 2) + extra,
     lines: label.lines,
     subtitleLines: subtitle.lines,
   };

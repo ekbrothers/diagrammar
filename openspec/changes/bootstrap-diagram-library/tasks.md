@@ -25,13 +25,13 @@
 ## 5. Elements and theming
 
 - [ ] 5.1 Implement built-in node types, rich content, ports, and the icon registry; verify each type with a snapshot and a missing-icon case.
-- [ ] 5.2 Implement edge styles, arrowheads, and labels; verify rendered output for each style.
-- [ ] 5.3 Implement custom element registration; verify a custom node takes part in layout and theming.
-- [ ] 5.4 Implement design tokens, light and dark modes, default and high-contrast themes, and per-element overrides; verify contrast ratios and no first-paint flash.
+- [x] 5.2 Implement edge styles, arrowheads, and labels; verify rendered output for each style.
+- [x] 5.3 Implement custom element registration; verify a custom node takes part in layout and theming.
+- [x] 5.4 Implement design tokens, light and dark modes, default and high-contrast themes, and per-element overrides; verify contrast ratios and no first-paint flash.
 
 ## 6. Rendering
 
-- [ ] 6.1 Implement the static server-rendered path with no client JavaScript; verify the built page contains the full SVG and no library script.
+- [x] 6.1 Implement the static server-rendered path with no client JavaScript; verify the built page contains the full SVG and no library script.
 - [ ] 6.2 Implement progressive hydration with no layout shift; verify element positions are unchanged after hydration.
 - [ ] 6.3 Implement lazy loading of interactive code and container resize behavior; verify off-screen diagrams load nothing until near the viewport.
 - [ ] 6.4 Add size and speed budgets enforced in continuous integration; verify exceeding a budget fails the build.

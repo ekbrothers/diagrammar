@@ -32,6 +32,16 @@
       "import": "./dist/layout.js",
       "require": "./dist/layout.cjs"
     },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.js",
+      "require": "./dist/render.cjs"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [

@@ -1,4 +1,6 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react';
+import { renderSvg, type RenderOptions } from '../render/index.js';
+import type { Layout } from '../layout/types.js';
 import { parseDiagram, type ValidateOptions } from '../schema/validate.js';
 import type {
   Diagram as DiagramDefinition,
@@ -141,4 +143,18 @@ export function definitionFromElement(element: ReactElement, options: ValidateOp
   if (out.groups.length > 0) definition.groups = out.groups.map(dropUndefined);
   if (out.layers.length > 0) definition.layers = out.layers.map(dropUndefined);
   return parseDiagram(definition, options);
+}
+
+export type DiagramViewProps = RenderOptions & {
+  diagram: DiagramDefinition;
+  layout: Layout;
+  className?: string;
+};
+
+/**
+ * Draws a laid-out diagram. The markup is complete in server-rendered HTML, so it is visible
+ * before any script runs. Compute the layout at build time or on the server with layoutDiagram().
+ */
+export function DiagramView({ diagram, layout, className, ...options }: DiagramViewProps): ReactElement {
+  return <div className={className} dangerouslySetInnerHTML={{ __html: renderSvg(diagram, layout, options) }} />;
 }
