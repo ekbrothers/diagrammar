@@ -85,7 +85,13 @@ npx diagrammar icons import ./Architecture-Icons.zip --prefix aws --match "/64/"
 
 That writes a module to register, after which `icon: 'aws:ec2'` works. If they don't have the download, draw cloud diagrams with the built-in icons and plain labels, and say so. Never invent vendor icon names that you haven't confirmed exist in a generated pack.
 
+Concept icons cover ideas no vendor gives a logo: `import { concepts } from 'diagrammar/icons'` has `workspace`, `project`, `module`, `state-file`, `plan`, `apply`, `queue`, `cache`, `job`, `schedule`, and `secret`. Register them like any pack. Reach for these instead of forcing a brand logo onto something that isn't a product.
+
 Cloud structure is groups inside groups: region, then VPC or network, then subnet. Put each service in the deepest group it belongs to.
+
+## Converting from Mermaid
+
+If the user already has a Mermaid flowchart, convert it rather than retyping: `npx diagrammar import mermaid <file> --out <out.ts>`. It reads `.mmd` and Markdown with a mermaid block. It prints what it could not carry across, each with a line number; pass that list on to the user rather than hiding it, since those parts need a decision. Only flowcharts convert. There is no export back to Mermaid, and offering one would lose nested groups, icons, roles, and pins.
 
 ## Working method
 

@@ -13,6 +13,7 @@ const IMPORTS: [string, string][] = [
   ["'../../src/index.js'", "'diagrammar'"],
   ["'../../src/server/index.js'", "'diagrammar/server'"],
   ["'../src/logos/index.js'", "'diagrammar/logos'"],
+  ["'../src/icons/concepts.js'", "'diagrammar/icons'"],
   ["'../src/index.js'", "'diagrammar'"],
   ["'../src/server/index.js'", "'diagrammar/server'"],
   ["'../src/react/index.js'", "'diagrammar/react'"],

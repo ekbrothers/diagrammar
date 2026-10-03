@@ -6,6 +6,7 @@ import * as roles from './roles.ts';
 import * as icons from './icons.ts';
 import * as logosExample from './logos.ts';
 import * as cloud from './cloud.ts';
+import * as terraform from './terraform.ts';
 import * as tree from './tree.ts';
 import * as radial from './radial.ts';
 import * as pinned from './pinned.ts';
@@ -72,6 +73,13 @@ export const examples: Example[] = [
     blurb: 'Nested groups work as regions, VPCs, and subnets. Icons come from a pack you register under a prefix (aws:ec2). Vendor icon sets are not bundled; import the official ones with the command in the code.',
     file: 'cloud.ts',
     ...cloud,
+  },
+  {
+    slug: 'terraform',
+    title: 'Infrastructure as code',
+    blurb: 'Brand logos and concept icons together. A plan, an apply, and a state file have no vendor logo, so diagrammar draws them.',
+    file: 'terraform.ts',
+    ...terraform,
   },
   {
     slug: 'tree',

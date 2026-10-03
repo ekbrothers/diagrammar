@@ -52,7 +52,12 @@
       "import": "./dist/logos.js",
       "require": "./dist/logos.cjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./icons": {
+      "types": "./dist/icons.d.ts",
+      "import": "./dist/icons.js",
+      "require": "./dist/icons.cjs"
+    }
   },
   "files": [
     "dist",

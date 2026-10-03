@@ -30,6 +30,7 @@ export default defineConfig([
       render: 'src/render/index.ts',
       server: 'src/server/index.ts',
       logos: 'src/logos/index.ts',
+      icons: 'src/icons/concepts.ts',
     },
     dts: true,
     clean: true,

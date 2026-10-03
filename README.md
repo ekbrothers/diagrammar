@@ -79,7 +79,9 @@ const svg = await renderDiagram({
 | `diagrammar/layout` | `layoutDiagram()` for automatic layout (bundles ELK) |
 | `diagrammar/render` | `renderSvg()`, themes, icons, `iconFromSvg()`, `iconifyPack()`. No ELK, so it stays small |
 | `diagrammar/server` | `renderDiagram()` and `renderPng()`: validate, lay out, and render in one call |
-| `diagrammar/logos` | A few bundled brand logos (Docker, PostgreSQL, Redis, and others) |
+| `diagrammar/logos` | Bundled brand logos (GitHub, Snowflake, Terraform, PostgreSQL, and others) |
+| `diagrammar/icons` | Concept icons for things with no logo: workspace, plan, apply, state file, queue |
+| `diagrammar import mermaid` | A command that converts a Mermaid flowchart into a definition |
 | `diagrammar icons import` | A command that turns a folder or zip of SVGs into an icon module |
 
 To keep ELK out of your page bundle, compute the layout at build time and pass the saved result to `renderSvg()` or `DiagramView`.
@@ -153,6 +155,7 @@ Built-in icons are single-color outlines that follow the text color. Logos are d
 - **Bundled logos.** `import { logos } from 'diagrammar/logos'`, then `registerIconPack('logo', logos)` once and write `icon: 'logo:postgresql'`. They come from [Simple Icons](https://simpleicons.org) (CC0). The artwork is public domain, but the logos are still trademarks of their owners, so use them to refer to those products and follow each owner's brand guidelines.
 - **Your own SVG.** `iconFromSvg(text)` turns a file into an icon. It rebuilds the markup from a short list of safe shapes, so scripts, event handlers, text, and links to other files are rejected with an error that says why.
 - **Iconify.** `iconifyPack(set, { include: ['name'] })` converts an [Iconify](https://iconify.design) JSON set, so any set it hosts can be used. Check each set's license.
+- **Concept icons.** Some things have no logo because they're ideas, not products: a Terraform workspace, a plan, an apply, a state file. `import { concepts } from 'diagrammar/icons'` has those, plus `queue`, `cache`, `job`, `schedule`, `module`, `project`, and `secret`. They're drawn for this project and follow the text color like the built-in icons, and they're named after the idea rather than the vendor, so they suit any tool with the same concept.
 - **Cloud icons.** AWS, Google Cloud, and Azure publish official icon sets with their own terms, so diagrammar doesn't include them. Download the set you want and import it once:
 
   ```sh
@@ -160,6 +163,25 @@ Built-in icons are single-color outlines that follow the text color. Logos are d
   ```
 
   That writes `icons/aws.ts`. Register it with `registerIconPack('aws', aws)` and use `icon: 'aws:ec2'`. The command accepts files, folders, and zips, and skips anything it can't make safe, with the reason.
+
+## Already have Mermaid diagrams?
+
+Convert one into a definition, then keep editing it as code:
+
+```sh
+npx diagrammar import mermaid ./architecture.md --out diagrams/architecture.ts
+```
+
+It reads `.mmd` files and Markdown with a ```` ```mermaid ```` block, and writes a module you can edit. Mermaid can say things this library can't, so anything that didn't survive is listed with its line number rather than dropped quietly:
+
+```
+Wrote 7 nodes and 8 edges to diagrams/architecture.ts.
+2 things were not converted:
+  line 11, classDef: Styling and behaviour directives are not converted.
+  line 4, shape: "{}" has no matching node type, so the default was used.
+```
+
+Only flowcharts convert. Sequence, class, and the other Mermaid kinds are refused rather than half-converted. Going the other way, out to Mermaid, isn't supported: it would quietly drop nested groups, icons, roles, and pinned positions, which is most of what makes a diagram here worth keeping.
 
 Groups nest, so regions, VPCs, and subnets are just groups inside groups. See the [cloud example](#cloud-diagrams) below and the [pattern gallery](docs/patterns.md) for round-robin, push, pull, publish and subscribe, circuit breaker, CQRS, and more.
 
@@ -455,6 +477,55 @@ const diagram = defineDiagram({
 });
 
 const options: RenderDiagramOptions = {};
+```
+
+### Infrastructure as code
+
+Brand logos and concept icons together. A plan, an apply, and a state file have no vendor logo, so diagrammar draws them.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/examples/terraform.dark.svg">
+  <img alt="A Terraform run. A change is pushed to GitHub, which starts a CI run. the workspace produces a plan, waits for approval, then applies it to the Snowflake warehouse and updates the state file." src="docs/examples/terraform.light.svg">
+</picture>
+
+```ts
+import { defineDiagram } from 'diagrammar';
+import { concepts } from 'diagrammar/icons';
+import { logos } from 'diagrammar/logos';
+import { registerIconPack } from 'diagrammar/render';
+import type { RenderDiagramOptions } from 'diagrammar/server';
+
+// Brand logos keep their colors; concept icons follow the text color.
+registerIconPack('logo', logos);
+registerIconPack('c', concepts);
+
+const diagram = defineDiagram({
+  title: 'A Terraform run',
+  description:
+    'A change is pushed to GitHub, which starts a CI run. the workspace produces a plan, waits for approval, then applies it to the Snowflake warehouse and updates the state file.',
+  groups: [{ id: 'cloud', label: 'Terraform Cloud' }],
+  nodes: [
+    { id: 'dev', label: 'Engineer', type: 'actor' },
+    { id: 'repo', label: 'Infrastructure', subtitle: 'GitHub', icon: 'logo:github' },
+    { id: 'ci', label: 'CI run', subtitle: 'GitHub Actions', icon: 'logo:github-actions' },
+    { id: 'ws', label: 'Workspace', subtitle: 'production', group: 'cloud', icon: 'c:workspace' },
+    { id: 'state', label: 'State file', group: 'cloud', icon: 'c:state-file' },
+    { id: 'plan', label: 'Plan', group: 'cloud', icon: 'c:plan', role: 'warning' },
+    { id: 'apply', label: 'Apply', group: 'cloud', icon: 'c:apply', role: 'primary' },
+    { id: 'warehouse', label: 'Warehouse', subtitle: 'Snowflake', icon: 'logo:snowflake' },
+  ],
+  edges: [
+    { id: 'e1', from: 'dev', to: 'repo', label: 'push' },
+    { id: 'e2', from: 'repo', to: 'ci' },
+    { id: 'e3', from: 'ci', to: 'ws', label: 'run' },
+    { id: 'e5', from: 'ws', to: 'plan' },
+    { id: 'e6', from: 'plan', to: 'apply', label: 'approved' },
+    { id: 'e7', from: 'apply', to: 'warehouse' },
+    { id: 'e8', from: 'apply', to: 'state', label: 'updates state', style: 'dashed' },
+  ],
+});
+
+const options: RenderDiagramOptions = { layout: { direction: 'right', spacing: 45, groupPadding: 24 } };
 ```
 
 ### Tree layout

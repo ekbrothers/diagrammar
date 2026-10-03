@@ -7,6 +7,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- `fromMermaid()` and `diagrammar import mermaid` read a Mermaid flowchart into a diagram definition, from a `.mmd` file or a fenced block in Markdown. Anything Mermaid can express that this library cannot is reported with its line number instead of being dropped silently. Only flowcharts convert; other Mermaid kinds are refused.
+- `diagrammar/icons` bundles concept icons for infrastructure ideas that have no vendor logo: workspace, project, module, state file, plan, apply, queue, cache, job, schedule, and secret.
+- More bundled brand logos, including Snowflake, Databricks, Airflow, Spark, ClickHouse, DuckDB, Trino, Datadog, Sentry, GitLab, GitHub Actions, HashiCorp, and Jira.
 - Pan and zoom in `InteractiveDiagram`, off by default and turned on with `zoom`. A one-finger drag and a bare wheel still scroll the page; a mouse drag pans, a pinch zooms, and Ctrl or Cmd with the wheel zooms. Bounded by `minZoom` and `maxZoom`, with labelled zoom and fit controls.
 - Keyboard navigation of nodes. The diagram is one tab stop, then arrow keys move to the nearest connected node in that direction, and Home and End jump to the first and last.
 - `renderPng()` in `diagrammar/server` exports a diagram as a PNG at any scale, in light or dark, with an optional transparent background. It needs the optional `@resvg/resvg-js` package.

@@ -1,6 +1,34 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { importIcons, renderModule } from './import-icons.js';
+import { readSource, renderDiagramModule } from './import-mermaid.js';
+import { fromMermaid } from '../interop/mermaid.js';
+
+const TOP_HELP = `diagrammar <command>
+
+Commands
+  icons import <input...>   Turn SVG files into a module of icons.
+  import mermaid <file>     Convert a Mermaid flowchart into a diagram definition.
+
+Run a command with --help for its options.
+`;
+
+const MERMAID_HELP = `diagrammar import mermaid <file> [options]
+
+Converts a Mermaid flowchart into a diagram definition. The file can be a .mmd
+file or Markdown containing a \`\`\`mermaid block. Anything Mermaid can express
+that this library cannot is listed afterwards, so nothing is lost silently.
+
+Only flowcharts convert. Other Mermaid kinds, such as sequence or class
+diagrams, are refused rather than half-converted.
+
+Options
+  --out <file>      Where to write. A .json path writes JSON, anything else
+                    writes TypeScript. Default: <input name>.ts
+  --block <n>       Which mermaid block to take, when the Markdown has several.
+                    Default: 1.
+  --help            Show this text.
+`;
 
 const HELP = `diagrammar icons import <input...> --prefix <name> [options]
 
@@ -55,10 +83,58 @@ function pattern(flags: Map<string, string>, name: string): RegExp | undefined {
   }
 }
 
+function importMermaid(rest: string[], log: (line: string) => void): number {
+  const { inputs, flags, help } = parse(rest);
+  if (help) {
+    log(MERMAID_HELP);
+    return 0;
+  }
+  const input = inputs[0];
+  if (input === undefined) throw new Error('Pass a .mmd or Markdown file to convert.');
+  if (inputs.length > 1) throw new Error('Convert one file at a time.');
+
+  const blockFlag = flags.get('block');
+  const which = blockFlag === undefined ? undefined : Number(blockFlag);
+  if (which !== undefined && (!Number.isInteger(which) || which < 1)) {
+    throw new Error(`--block must be a whole number of 1 or more, got ${blockFlag}.`);
+  }
+
+  const { source, blocks } = readSource(input, which);
+  if (blocks > 1) log(`${input} has ${blocks} mermaid blocks; converting number ${which ?? 1}.`);
+
+  const result = fromMermaid(source);
+  const out = flags.get('out') ?? `${input.replace(/\.[^.]+$/, '')}.ts`;
+  const text = out.endsWith('.json')
+    ? `${JSON.stringify(result.diagram, null, 2)}\n`
+    : renderDiagramModule(result, input);
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, text);
+
+  const nodes = result.diagram.nodes.length;
+  const edges = result.diagram.edges?.length ?? 0;
+  log(`Wrote ${nodes} nodes and ${edges} edges to ${out}.`);
+  if (result.report.length === 0) log('Everything in the source was converted.');
+  else {
+    log(`${result.report.length} ${result.report.length === 1 ? 'thing was' : 'things were'} not converted:`);
+    for (const note of result.report) log(`  line ${note.line}, ${note.construct}: ${note.detail}`);
+  }
+  return 0;
+}
+
 export function run(argv: string[], log: (line: string) => void = console.log): number {
   const [command, subcommand, ...rest] = argv;
+
+  if (command === 'import' && subcommand === 'mermaid') {
+    try {
+      return importMermaid(rest, log);
+    } catch (cause) {
+      log(`Error: ${cause instanceof Error ? cause.message : String(cause)}`);
+      return 1;
+    }
+  }
+
   if (command !== 'icons' || subcommand !== 'import') {
-    log(HELP);
+    log(command === 'icons' || command === 'import' ? HELP : TOP_HELP);
     return command === undefined || command === '--help' || command === '-h' ? 0 : 1;
   }
   try {

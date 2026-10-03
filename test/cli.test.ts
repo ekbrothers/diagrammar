@@ -145,7 +145,7 @@ describe('run', () => {
   it('shows help with no arguments and fails on an unknown command', () => {
     const a = lines();
     expect(run([], a.log)).toBe(0);
-    expect(a.out[0]).toContain('diagrammar icons import');
+    expect(a.out[0]).toContain('icons import');
     expect(run(['nope'], lines().log)).toBe(1);
     expect(run(['icons', 'import', '--help'], lines().log)).toBe(0);
   });
@@ -190,5 +190,94 @@ describe('run', () => {
 
   it('reports a missing input file', () => {
     expect(run(['icons', 'import', join(dir, 'missing.svg'), '--prefix', 'x'], lines().log)).toBe(1);
+  });
+});
+
+describe('import mermaid', () => {
+  const write = (name: string, text: string) => {
+    const path = join(dir, name);
+    writeFileSync(path, text);
+    return path;
+  };
+
+  it('converts a flowchart file and reports a clean conversion', () => {
+    const input = write('clean.mmd', 'flowchart LR\n  A[One] --> B[Two]\n');
+    const out = join(dir, 'clean.ts');
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid', input, '--out', out], (l) => lines.push(l))).toBe(0);
+    const text = readFileSync(out, 'utf8');
+    expect(text).toContain("id: \"A\"");
+    expect(text).toContain('defineDiagram');
+    expect(lines.join('\n')).toContain('Everything in the source was converted');
+  });
+
+  it('prints what was not converted', () => {
+    const input = write('lossy.mmd', 'flowchart LR\n  A --> B\n  classDef big fill:#f9f\n');
+    const lines: string[] = [];
+    run(['import', 'mermaid', input, '--out', join(dir, 'lossy.ts')], (l) => lines.push(l));
+    expect(lines.join('\n')).toContain('line 3, classDef');
+  });
+
+  it('writes JSON when the output ends in .json', () => {
+    const input = write('json.mmd', 'flowchart LR\n  A --> B\n');
+    const out = join(dir, 'out.json');
+    run(['import', 'mermaid', input, '--out', out], () => {});
+    expect(JSON.parse(readFileSync(out, 'utf8')).nodes).toHaveLength(2);
+  });
+
+  it('converts a fenced block in Markdown', () => {
+    const input = write('one.md', '# T\n\n```mermaid\nflowchart LR\n  A --> B\n```\n');
+    const out = join(dir, 'one.ts');
+    expect(run(['import', 'mermaid', input, '--out', out], () => {})).toBe(0);
+    expect(readFileSync(out, 'utf8')).toContain('id: "A"');
+  });
+
+  it('reports the count and converts the chosen block when Markdown has several', () => {
+    const input = write('many.md', '```mermaid\nflowchart LR\n  A --> B\n```\n\n```mermaid\nflowchart LR\n  C --> D\n```\n');
+    const lines: string[] = [];
+    const out = join(dir, 'many.ts');
+    run(['import', 'mermaid', input, '--block', '2', '--out', out], (l) => lines.push(l));
+    expect(lines.join('\n')).toContain('has 2 mermaid blocks');
+    expect(readFileSync(out, 'utf8')).toContain('id: "C"');
+  });
+
+  it('refuses a block number outside the range', () => {
+    const input = write('two.md', '```mermaid\nflowchart LR\n  A --> B\n```\n');
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid', input, '--block', '5'], (l) => lines.push(l))).toBe(1);
+    expect(lines.join('\n')).toContain('--block must be between 1 and 1');
+  });
+
+  it('refuses a diagram kind that is not a flowchart', () => {
+    const input = write('seq.mmd', 'sequenceDiagram\n  A->>B: hi\n');
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid', input], (l) => lines.push(l))).toBe(1);
+    expect(lines.join('\n')).toContain('Only flowcharts');
+  });
+
+  it('refuses Markdown with no mermaid block', () => {
+    const input = write('none.md', '# Nothing here\n');
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid', input], (l) => lines.push(l))).toBe(1);
+    expect(lines.join('\n')).toContain('no ```mermaid code block');
+  });
+
+  it('needs a file', () => {
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid'], (l) => lines.push(l))).toBe(1);
+    expect(lines.join('\n')).toContain('Pass a .mmd or Markdown file');
+  });
+
+  it('shows its own help', () => {
+    const lines: string[] = [];
+    expect(run(['import', 'mermaid', '--help'], (l) => lines.push(l))).toBe(0);
+    expect(lines.join('\n')).toContain('import mermaid');
+  });
+
+  it('shows the command list when given no command', () => {
+    const lines: string[] = [];
+    expect(run([], (l) => lines.push(l))).toBe(0);
+    expect(lines.join('\n')).toContain('icons import');
+    expect(lines.join('\n')).toContain('import mermaid');
   });
 });
