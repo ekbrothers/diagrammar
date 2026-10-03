@@ -55,7 +55,8 @@
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm run lint && npm run test:coverage && npm run build",
     "prepublishOnly": "npm run check",
-    "release": "node scripts/release.ts"
+    "release": "node scripts/release.ts",
+    "examples": "tsx scripts/examples.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -67,6 +68,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0",
     "vitest": "^5.0.3"

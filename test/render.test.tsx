@@ -288,3 +288,10 @@ describe('integrations', () => {
     expect(html).toBe(`<div class="wrap">${renderSvg(diagram, layout)}</div>`);
   });
 });
+
+describe('background option', () => {
+  it('fills the canvas with the theme background only when asked', async () => {
+    expect(await draw()).not.toContain('class="canvas"');
+    expect(await draw(diagram, { background: true })).toContain('class="canvas"');
+  });
+});

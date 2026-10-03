@@ -15,5 +15,5 @@
     "esModuleInterop": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "test", "scripts", "*.config.ts"]
+  "include": ["src", "test", "scripts", "examples", "*.config.ts"]
 }

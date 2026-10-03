@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- `background` render option to fill the diagram with the theme background, so standalone SVG files read well on any page.
+- README examples drawn from real, type-checked source in `examples/`. `npm run examples` regenerates the light and dark SVGs, and a test fails if they go stale.
 - Diagram definition schema with stable ids, groups, layers, and semantic roles, validated with a report of every problem and its field path.
 - Schema versioning. Definitions without a version are treated as the current one, and unsupported versions are rejected with a clear message.
 - Data and JSON authoring: `defineDiagram` for type-checked definitions and `loadDiagram` for objects, JSON, and the single-string form used in MDX.

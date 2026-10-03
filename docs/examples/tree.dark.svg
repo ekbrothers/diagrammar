@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="dg-tree-dark" viewBox="-25 -25 432.6 235.2" width="432.6" height="235.2" style="max-width:100%;height:auto" role="img" aria-labelledby="dg-tree-dark-title"><title id="dg-tree-dark-title">Org chart</title><style>.dg-tree-dark{--dg-bg:#0d1117;--dg-text:#e6edf3;--dg-text-muted:#9ea7b3;--dg-edge:#9ea7b3;--dg-group-fill:#161b22;--dg-group-stroke:#8b949e;--dg-default-fill:#161b22;--dg-default-stroke:#8b949e;--dg-default-text:#e6edf3;--dg-primary-fill:#0c2d6b;--dg-primary-stroke:#58a6ff;--dg-primary-text:#cae8ff;--dg-success-fill:#0f2d1a;--dg-success-stroke:#3fb950;--dg-success-text:#b7f5c4;--dg-warning-fill:#3b2e00;--dg-warning-stroke:#d29922;--dg-warning-text:#ffe9a8;--dg-danger-fill:#4c0b12;--dg-danger-stroke:#f85149;--dg-danger-text:#ffd1cc;--dg-muted-fill:#161b22;--dg-muted-stroke:#8b949e;--dg-muted-text:#9ea7b3}
+.dg-tree-dark{font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:var(--dg-text)}
+.dg-tree-dark .role-default{--fill:var(--dg-default-fill);--stroke:var(--dg-default-stroke);--text:var(--dg-default-text);--es:var(--dg-default-stroke)}
+.dg-tree-dark .role-primary{--fill:var(--dg-primary-fill);--stroke:var(--dg-primary-stroke);--text:var(--dg-primary-text);--es:var(--dg-primary-stroke)}
+.dg-tree-dark .role-success{--fill:var(--dg-success-fill);--stroke:var(--dg-success-stroke);--text:var(--dg-success-text);--es:var(--dg-success-stroke)}
+.dg-tree-dark .role-warning{--fill:var(--dg-warning-fill);--stroke:var(--dg-warning-stroke);--text:var(--dg-warning-text);--es:var(--dg-warning-stroke)}
+.dg-tree-dark .role-danger{--fill:var(--dg-danger-fill);--stroke:var(--dg-danger-stroke);--text:var(--dg-danger-text);--es:var(--dg-danger-stroke)}
+.dg-tree-dark .role-muted{--fill:var(--dg-muted-fill);--stroke:var(--dg-muted-stroke);--text:var(--dg-muted-text);--es:var(--dg-muted-stroke)}
+.dg-tree-dark text{font-family:inherit}
+.dg-tree-dark .shape{fill:var(--fill);stroke:var(--stroke);stroke-width:1.5px}
+.dg-tree-dark .glyph{fill:none;stroke:var(--stroke);stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round}
+.dg-tree-dark .card .shape{filter:drop-shadow(0 1px 2px rgba(31, 35, 40, 0.18))}
+.dg-tree-dark .role-muted .shape{stroke-dasharray:5 3}
+.dg-tree-dark .role-primary .shape{stroke-width:2.55px}
+.dg-tree-dark .lbl{fill:var(--text);font-size:14px}
+.dg-tree-dark .card .lbl{font-weight:600}
+.dg-tree-dark .sub{fill:var(--text);font-size:12px}
+.dg-tree-dark .icon{color:var(--text)}
+.dg-tree-dark .badge{fill:var(--dg-bg);stroke:var(--stroke);stroke-width:1.5px}
+.dg-tree-dark .edge-line{fill:none;stroke:var(--es,var(--dg-edge));stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round}
+.dg-tree-dark .arrow{fill:var(--es,var(--dg-edge));stroke:none}
+.dg-tree-dark .edge-label-box{fill:var(--dg-bg);stroke:none}
+.dg-tree-dark .edge-label{fill:var(--dg-text);font-size:12px}
+.dg-tree-dark .group-box{fill:var(--dg-group-fill);stroke:var(--dg-group-stroke);stroke-width:1px}
+.dg-tree-dark .group-label{fill:var(--dg-text-muted);font-size:12px;font-weight:600}
+.dg-tree-dark .canvas{fill:var(--dg-bg)}
+.dg-tree-dark a{cursor:pointer}
+.dg-tree-dark a:focus-visible{outline:2px solid var(--dg-primary-stroke);outline-offset:3px}</style><rect class="canvas" x="-25" y="-25" width="432.6" height="235.2" rx="8"/><g class="groups"></g><g class="edges"><g class="edge" data-id="e1"><title>CEO to Engineering</title><path class="edge-line" d="M205.33 38.2L205.33 58.2L106.5 76.68L103 78"/></g><g class="edge" data-id="e2"><title>CEO to Operations</title><path class="edge-line" d="M226.67 38.2L226.67 58.2L324.5 76.68L328 78"/></g><g class="edge" data-id="e3"><title>Engineering to Web</title><path class="edge-line" d="M83.45 116.2L83.45 136.2L35.5 154.68L32 156"/></g><g class="edge" data-id="e4"><title>Engineering to Infrastructure</title><path class="edge-line" d="M122.55 116.2L122.55 136.2L171.5 154.68L175 156"/></g><g class="edge" data-id="e5"><title>Operations to Support</title><path class="edge-line" d="M328 116.2L328 136.2L328 156"/></g></g><g class="edge-labels"></g><g class="nodes"><g class="node type-card role-primary card" id="dg-tree-dark-n-ceo" data-id="ceo"><rect class="shape" x="184" y="0" width="64" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="216" y="19.1">CEO</tspan></text></g><g class="node type-box role-default" id="dg-tree-dark-n-eng" data-id="eng"><rect class="shape" x="44.34" y="78" width="117.32" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="103" y="97.1">Engineering</tspan></text></g><g class="node type-box role-default" id="dg-tree-dark-n-ops" data-id="ops"><rect class="shape" x="273.4" y="78" width="109.2" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="328" y="97.1">Operations</tspan></text></g><g class="node type-box role-muted" id="dg-tree-dark-n-web" data-id="web"><rect class="shape" x="0" y="156" width="64" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="32" y="175.1">Web</tspan></text></g><g class="node type-box role-muted" id="dg-tree-dark-n-infra" data-id="infra"><rect class="shape" x="104.16" y="156" width="141.68" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="175" y="175.1">Infrastructure</tspan></text></g><g class="node type-box role-muted" id="dg-tree-dark-n-support" data-id="support"><rect class="shape" x="285.58" y="156" width="84.84" height="38.2" rx="8"/><text class="lbl" text-anchor="middle" dominant-baseline="central"><tspan x="328" y="175.1">Support</tspan></text></g></g></svg>

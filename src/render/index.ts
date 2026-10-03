@@ -47,6 +47,8 @@ export interface RenderOptions {
   description?: string;
   /** Space around the diagram in pixels. Default: 16. */
   padding?: number;
+  /** Fill the diagram background with the theme background, so it reads well on any page. Default: false. */
+  background?: boolean;
   /** Receives development warnings such as unknown icons. Defaults to console.warn outside production. */
   onWarning?: (message: string) => void;
 }
@@ -112,6 +114,7 @@ function buildCss(scope: string, theme: Theme, mode: NonNullable<RenderOptions['
     `${s} .edge-label{fill:var(--dg-text);font-size:${EDGE_LABEL_FONT_SIZE}px}`,
     `${s} .group-box{fill:var(--dg-group-fill);stroke:var(--dg-group-stroke);stroke-width:1px}`,
     `${s} .group-label{fill:var(--dg-text-muted);font-size:12px;font-weight:600}`,
+    `${s} .canvas{fill:var(--dg-bg)}`,
     `${s} a{cursor:pointer}`,
     `${s} a:focus-visible{outline:2px solid var(--dg-primary-stroke);outline-offset:3px}`,
   );
@@ -418,6 +421,7 @@ export function renderSvg(diagram: Diagram, layout: Layout, options: RenderOptio
     (title ? `<title id="${scope}-title">${esc(title)}</title>` : '') +
     (description ? `<desc id="${scope}-desc">${esc(description)}</desc>` : '') +
     `<style>${buildCss(scope, theme, mode)}</style>` +
+    (options.background ? `<rect class="canvas" x="${num(vx)}" y="${num(vy)}" width="${width}" height="${height}" rx="${theme.radius}"/>` : '') +
     `<g class="groups">${groups}</g><g class="edges">${edgeMarkup}</g><g class="edge-labels">${labels.map(renderLabel).join('')}</g><g class="nodes">${nodes}</g></svg>`
   );
 }
