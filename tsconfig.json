@@ -7,12 +7,13 @@
     "strict": true,
     "ignoreDeprecations": "6.0",
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": false,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
     "skipLibCheck": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "jsx": "react-jsx"
   },
-  "include": ["src", "test", "*.config.ts"]
+  "include": ["src", "test", "scripts", "*.config.ts"]
 }

@@ -24,3 +24,13 @@ Bug fixes that restore documented behavior can skip this step.
 ## Conduct
 
 Be kind and assume good intent.
+
+## Releasing
+
+Maintainers cut releases from `main`. Add each user-visible change to the `Unreleased` section of `CHANGELOG.md` as you go.
+
+1. Run `npm run release -- patch` (or `minor`, `major`, or an explicit `x.y.z`). It checks the tree is clean, runs the full check, dates the changelog, bumps the version, and creates the commit and the `vX.Y.Z` tag. It never pushes.
+2. Push with `git push origin main --follow-tags`.
+3. The Release workflow confirms the tag matches `package.json`, reruns the checks, publishes to npm with provenance, and creates the GitHub release from the changelog.
+
+The workflow needs an `NPM_TOKEN` repository secret (an npm automation token). Releases use Node 22.18+ or 24 locally, because the scripts run TypeScript directly.

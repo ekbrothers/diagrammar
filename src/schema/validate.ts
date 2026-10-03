@@ -1,4 +1,10 @@
-import { diagramSchema, SCHEMA_VERSION, SUPPORTED_VERSIONS, type Diagram } from './types.js';
+import {
+  BUILT_IN_NODE_TYPES,
+  diagramSchema,
+  SCHEMA_VERSION,
+  SUPPORTED_VERSIONS,
+  type Diagram,
+} from './types.js';
 
 export type IssueCode =
   | 'invalid'
@@ -7,6 +13,7 @@ export type IssueCode =
   | 'unknown-endpoint'
   | 'unknown-group'
   | 'unknown-layer'
+  | 'unknown-node-type'
   | 'group-cycle';
 
 export interface DiagramIssue {
@@ -39,7 +46,12 @@ function checkVersion(input: unknown): DiagramIssue | null {
   };
 }
 
-function checkReferences(diagram: Diagram): DiagramIssue[] {
+export interface ValidateOptions {
+  /** Node types registered by the consumer, in addition to the built-in ones. */
+  nodeTypes?: readonly string[];
+}
+
+function checkReferences(diagram: Diagram, options: ValidateOptions): DiagramIssue[] {
   const issues: DiagramIssue[] = [];
   const nodes = diagram.nodes;
   const edges = diagram.edges ?? [];
@@ -91,6 +103,17 @@ function checkReferences(diagram: Diagram): DiagramIssue[] {
     }
   };
 
+  const knownTypes = new Set<string>([...BUILT_IN_NODE_TYPES, ...(options.nodeTypes ?? [])]);
+  nodes.forEach((n, i) => {
+    if (n.type !== undefined && !knownTypes.has(n.type)) {
+      issues.push({
+        code: 'unknown-node-type',
+        path: `nodes[${i}].type`,
+        message: `Node "${n.id}" has type "${n.type}", which is not defined. Available types: ${[...knownTypes].join(', ')}. Register custom types with the nodeTypes option.`,
+      });
+    }
+  });
+
   nodes.forEach((n, i) => {
     checkGroup(n.group, `nodes[${i}].group`, `Node "${n.id}"`);
     checkLayer(n.layer, `nodes[${i}].layer`, `Node "${n.id}"`);
@@ -122,7 +145,7 @@ function checkReferences(diagram: Diagram): DiagramIssue[] {
   return issues;
 }
 
-export function validateDiagram(input: unknown): ValidationResult {
+export function validateDiagram(input: unknown, options: ValidateOptions = {}): ValidationResult {
   const versionIssue = checkVersion(input);
   if (versionIssue) return { ok: false, errors: [versionIssue] };
 
@@ -138,7 +161,7 @@ export function validateDiagram(input: unknown): ValidationResult {
     };
   }
 
-  const errors = checkReferences(parsed.data);
+  const errors = checkReferences(parsed.data, options);
   if (errors.length > 0) return { ok: false, errors };
   return { ok: true, diagram: parsed.data };
 }
@@ -152,8 +175,8 @@ export class DiagramValidationError extends Error {
   }
 }
 
-export function parseDiagram(input: unknown): Diagram {
-  const result = validateDiagram(input);
+export function parseDiagram(input: unknown, options: ValidateOptions = {}): Diagram {
+  const result = validateDiagram(input, options);
   if (!result.ok) throw new DiagramValidationError(result.errors);
   return result.diagram;
 }

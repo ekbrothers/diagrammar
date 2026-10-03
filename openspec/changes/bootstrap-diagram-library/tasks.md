@@ -12,13 +12,13 @@
 
 ## 3. Authoring
 
-- [ ] 3.1 Implement the React component API that builds a definition from child elements; verify it matches the equivalent data definition.
+- [x] 3.1 Implement the React component API that builds a definition from child elements; verify it matches the equivalent data definition.
 - [ ] 3.2 Implement authoring from a data object and from an MDX string prop; verify both render identically to the component form.
-- [ ] 3.3 Add TypeScript types for all public authoring APIs; verify type tests reject misuse.
+- [x] 3.3 Add TypeScript types for all public authoring APIs; verify type tests reject misuse.
 
 ## 4. Layout
 
-- [ ] 4.1 Integrate elkjs behind a layout interface with content-aware node sizing; verify a fixture graph lays out without overlaps.
+- [x] 4.1 Integrate elkjs behind a layout interface with content-aware node sizing; verify a fixture graph lays out without overlaps.
 - [ ] 4.2 Support manual pinning, nested groups and swimlanes, and edge routing options; verify pinned nodes stay put and groups contain their children.
 - [ ] 4.3 Guarantee deterministic output and implement precomputed layout export and import; verify two runs produce identical output and a precomputed diagram skips layout.
 
