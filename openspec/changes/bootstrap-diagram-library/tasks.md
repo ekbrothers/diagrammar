@@ -1,13 +1,13 @@
 ## 1. Repository foundation
 
-- [ ] 1.1 Add package.json, TypeScript config, build tool, and lint config; verify `npm run build` and `npm run lint` pass on an empty entry point.
-- [ ] 1.2 Add MIT LICENSE, README, CONTRIBUTING, CODE_OF_CONDUCT, and issue templates; verify each file exists and README links resolve.
+- [x] 1.1 Add package.json, TypeScript config, build tool, and lint config; verify `npm run build` and `npm run lint` pass on an empty entry point.
+- [x] 1.2 Add MIT LICENSE, README, CONTRIBUTING, CODE_OF_CONDUCT, and issue templates; verify each file exists and README links resolve.
 - [ ] 1.3 Add continuous integration running type check, lint, and tests; verify a pull request triggers it and a deliberate type error fails it.
 
 ## 2. Definition schema
 
-- [ ] 2.1 Implement the versioned Zod schema with stable ids, groups, layers, and semantic roles; verify valid and invalid fixtures produce expected results.
-- [ ] 2.2 Implement validation errors that name the path and the problem; verify error text for duplicate ids, dangling edges, and unknown types.
+- [x] 2.1 Implement the versioned Zod schema with stable ids, groups, layers, and semantic roles; verify valid and invalid fixtures produce expected results.
+- [x] 2.2 Implement validation errors that name the path and the problem; verify error text for duplicate ids, dangling edges, and unknown types.
 - [ ] 2.3 Implement schema version handling and migration; verify an older fixture loads and a newer-than-supported fixture is rejected clearly.
 
 ## 3. Authoring
