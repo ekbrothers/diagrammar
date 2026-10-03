@@ -121,15 +121,18 @@ Validation alone, with no layout cost: `import { validateDiagram } from 'diagram
 ## Putting it on a website
 
 - **Standalone file.** Write the SVG from `renderDiagram(diagram, { background: true })`.
+- **A PNG.** `renderPng(diagram, { scale: 2, background: true })` returns raster bytes for Slack, docs, and slides. It needs the optional `@resvg/resvg-js` package, and a PNG cannot follow the viewer's theme, so pass `mode`.
 - **Inline in React.** Compute the layout on the server or at build time, then render `DiagramView` from `diagrammar/react`: `const layout = await layoutDiagram(diagram)` then `<DiagramView diagram={diagram} layout={layout} />`. The markup is in the server-rendered HTML. Importing `diagrammar/layout` into a client bundle pulls in ELK, so keep that import on the server.
 - **Links and tooltips.** `href` on a node makes it a real link, and `detail` becomes a tooltip.
 - **Hover and click.** `InteractiveDiagram` from `diagrammar/interactive` is a client component that takes the same `diagram` and `layout` props, dims everything not connected to the hovered or focused node, and calls `onNodeClick` and `onNodeHover`. Pass it a layout computed on the server.
+- **Pan and zoom.** Pass `zoom` to `InteractiveDiagram` for zoom and fit controls, bounded by `minZoom` and `maxZoom`. A one-finger drag and a bare wheel still scroll the page; zoom takes a pinch, the buttons, or Ctrl or Cmd with the wheel. Suggest it for any diagram past about 20 nodes.
+- **Keyboard.** Nodes are reachable without a pointer: the diagram is one tab stop, then arrow keys move between connected nodes. This works whenever `InteractiveDiagram` is used, with nothing to configure.
 - If the same diagram appears twice on a page, give each a different `id` render option, or the scoped styles collide.
 - A strict Content-Security-Policy that blocks inline styles will stop the diagram's styling, because the styles live in a `<style>` element inside the SVG. Tell the user if their site sets one.
 
 ## Known limits
 
-Don't promise these. They aren't built yet: ports as a layout feature, swimlanes, animation, PNG export, and collapsible groups with details on demand. If the user asks for one, say it isn't supported and offer the closest workaround (groups for swimlane-like banding, layers for show and hide).
+Don't promise these. They aren't built yet: ports as a layout feature, swimlanes, animation, and collapsible groups with details on demand. If the user asks for one, say it isn't supported and offer the closest workaround (groups for swimlane-like banding, layers for show and hide).
 
 ## When you're unsure
 

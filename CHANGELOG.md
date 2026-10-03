@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Pan and zoom in `InteractiveDiagram`, off by default and turned on with `zoom`. A one-finger drag and a bare wheel still scroll the page; a mouse drag pans, a pinch zooms, and Ctrl or Cmd with the wheel zooms. Bounded by `minZoom` and `maxZoom`, with labelled zoom and fit controls.
+- Keyboard navigation of nodes. The diagram is one tab stop, then arrow keys move to the nearest connected node in that direction, and Home and End jump to the first and last.
 - `renderPng()` in `diagrammar/server` exports a diagram as a PNG at any scale, in light or dark, with an optional transparent background. It needs the optional `@resvg/resvg-js` package.
 - A `flatten` render option that resolves CSS custom properties to literal colors, so a diagram draws correctly in rasterizers and older SVG viewers, which read CSS classes but not variables.
 - A Claude Code subagent (`.claude/agents/diagrammar.md`, included in the package) that knows the schema, options, icons, and embedding, plus a README introduction and a section on using it.

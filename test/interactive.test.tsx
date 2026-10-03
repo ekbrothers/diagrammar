@@ -111,3 +111,76 @@ describe('InteractiveDiagram', () => {
     expect(onNodeHover).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }));
   });
 });
+
+describe('InteractiveDiagram keyboard navigation', () => {
+  /**
+   * jsdom has no layout engine, so getBBox returns nothing and every node sits at the origin.
+   * Positions are read when the component mounts, so the stub has to be in place before that.
+   * It reads the laid-out position straight off the rendered element.
+   */
+  function stubLayoutEngine(layout: Layout) {
+    const positions = new Map(layout.nodes.map((n) => [n.id, n]));
+    const proto = Object.getPrototypeOf(document.createElementNS('http://www.w3.org/2000/svg', 'g')) as {
+      getBBox?: () => DOMRect;
+    };
+    proto.getBBox = function getBBox(this: SVGElement): DOMRect {
+      const laid = positions.get(this.getAttribute('data-id') ?? '');
+      const { x = 0, y = 0, width = 0, height = 0 } = laid ?? {};
+      return { x, y, width, height } as DOMRect;
+    };
+  }
+
+  it('gives the diagram a single tab stop', async () => {
+    const el = await mount();
+    const stops = [...el.querySelectorAll('[tabindex="0"]')];
+    expect(stops).toHaveLength(1);
+    expect(el.querySelectorAll('[tabindex="-1"]').length).toBeGreaterThan(0);
+  });
+
+  it('moves focus along an edge with an arrow key', async () => {
+    stubLayoutEngine(await layoutDiagram(diagram));
+    const el = await mount();
+    const a = node(el, 'a') as SVGElement & { focus: () => void };
+    a.focus = () => undefined;
+    const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+    act(() => void a.dispatchEvent(event));
+    expect(event.defaultPrevented).toBe(true);
+    expect(node(el, 'b').getAttribute('tabindex')).toBe('0');
+    expect(node(el, 'a').getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('leaves other keys to the page', async () => {
+    const el = await mount();
+    const a = node(el, 'a');
+    const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    act(() => void a.dispatchEvent(event));
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('jumps to the first and last node with Home and End', async () => {
+    stubLayoutEngine(await layoutDiagram(diagram));
+    const el = await mount();
+    const a = node(el, 'a') as SVGElement & { focus: () => void };
+    a.focus = () => undefined;
+    act(() => void a.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })));
+    expect(node(el, 'd').closest('a')!.getAttribute('tabindex')).toBe('0');
+  });
+});
+
+describe('InteractiveDiagram zoom', () => {
+  it('shows no controls by default', async () => {
+    const el = await mount();
+    expect(el.querySelector('.dg-zoom-controls')).toBeNull();
+  });
+
+  it('shows labelled controls when zoom is on', async () => {
+    const el = await mount({ zoom: true });
+    const labels = [...el.querySelectorAll('.dg-zoom-controls button')].map((b) => b.getAttribute('aria-label'));
+    expect(labels).toEqual(['Zoom out', 'Fit diagram', 'Zoom in']);
+  });
+
+  it('uses supplied labels', async () => {
+    const el = await mount({ zoom: true, labels: { zoomIn: 'Agrandir' } });
+    expect(el.querySelector('[aria-label="Agrandir"]')).not.toBeNull();
+  });
+});

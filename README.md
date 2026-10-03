@@ -75,10 +75,10 @@ const svg = await renderDiagram({
 | --- | --- |
 | `diagrammar` | The schema, validation, and `defineDiagram()` |
 | `diagrammar/react` | `<Diagram>`, `<Node>`, `<Edge>`, `<Group>`, `<Layer>`, `definitionFromElement()`, `DiagramView` |
-| `diagrammar/interactive` | `InteractiveDiagram`: hover highlighting and click callbacks (a client component) |
+| `diagrammar/interactive` | `InteractiveDiagram`: highlighting, pan and zoom, keyboard navigation, click callbacks (a client component) |
 | `diagrammar/layout` | `layoutDiagram()` for automatic layout (bundles ELK) |
 | `diagrammar/render` | `renderSvg()`, themes, icons, `iconFromSvg()`, `iconifyPack()`. No ELK, so it stays small |
-| `diagrammar/server` | `renderDiagram()`: validate, lay out, and render in one call |
+| `diagrammar/server` | `renderDiagram()` and `renderPng()`: validate, lay out, and render in one call |
 | `diagrammar/logos` | A few bundled brand logos (Docker, PostgreSQL, Redis, and others) |
 | `diagrammar icons import` | A command that turns a folder or zip of SVGs into an icon module |
 
@@ -96,6 +96,24 @@ import { renderDiagram } from 'diagrammar/server';
 
 writeFileSync('architecture.svg', await renderDiagram(diagram, { background: true }));
 ```
+
+**A PNG, for everywhere that isn't the web.** Slack, Google Docs, slides, and PDFs all want a raster image. `renderPng` returns the bytes.
+
+```ts
+import { renderPng } from 'diagrammar/server';
+
+writeFileSync('architecture.png', await renderPng(diagram, { scale: 2, background: true }));
+```
+
+`scale: 2` doubles the pixel size for high-density screens. Leave `background` off for a transparent one. A PNG can't follow the viewer's light or dark setting, so pick one with `mode`; it defaults to light.
+
+PNG export needs the optional `@resvg/resvg-js` package, which ships prebuilt binaries:
+
+```sh
+npm install @resvg/resvg-js
+```
+
+Text is drawn with the fonts on the machine doing the export, so a build server without your diagram font will substitute another. Pass `fontDirs` with `fontDirsOnly: true` to pin the fonts and get the same image everywhere.
 
 **Inline on a page, with links.** Give a node an `href` and it becomes a real link. Give it `detail` and it gets a tooltip. `DiagramView` puts the SVG in your server-rendered HTML, so it shows up before any script runs.
 
@@ -116,7 +134,15 @@ import { InteractiveDiagram } from 'diagrammar/interactive';
 <InteractiveDiagram diagram={diagram} layout={layout} onNodeClick={(node) => openPanel(node.id)} />;
 ```
 
-Links in the diagram stay links. Nodes that have an `href` navigate as usual, and nodes without one become keyboard-focusable buttons when you pass `onNodeClick`.
+**Pan and zoom.** Pass `zoom` and the reader gets zoom and fit controls. A big cloud diagram stays readable without the page having to be enormous.
+
+```tsx
+<InteractiveDiagram diagram={diagram} layout={layout} zoom minZoom={0.5} maxZoom={6} />
+```
+
+The diagram never steals the page. A one-finger drag scrolls as usual, and so does a plain mouse wheel; zooming takes Ctrl or Cmd with the wheel, a pinch, or the buttons. Dragging with a mouse pans. If you'd rather a bare wheel zoomed, pass `wheelWithoutModifier`, but it will stop readers scrolling past the diagram on a trackpad.
+
+**Keyboard.** The diagram is a single tab stop rather than one per node, so a reader tabbing through your page doesn't get stuck in a fifty-node diagram. Once inside, arrow keys move to the nearest connected node in that direction, Home and End jump to the first and last, and Enter or Space activates. Links in the diagram stay links: nodes with an `href` navigate as usual, and nodes without one become buttons when you pass `onNodeClick`.
 
 Two things to know. The styles are in a `<style>` element inside the SVG, so a strict Content-Security-Policy that blocks inline styles will stop them. And if you put the same diagram on a page twice, give each one a different `id` option so the scoped styles don't collide.
 

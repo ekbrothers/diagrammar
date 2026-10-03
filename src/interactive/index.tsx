@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, type ReactElement } from 'react';
 import { renderSvg } from '../render/index.js';
 import type { DiagramViewProps } from '../react/index.js';
 import type { DiagramNode } from '../schema/types.js';
+import { collectEdges, collectNodes, isArrowKey, nextNode, type NodeBox } from './keyboard.js';
+import { createViewport, type Viewport } from './viewport.js';
 
 export type InteractiveDiagramProps = DiagramViewProps & {
   /** Called when a node is clicked, or activated with Enter or Space. Nodes with an href still navigate. */
@@ -12,6 +14,15 @@ export type InteractiveDiagramProps = DiagramViewProps & {
   onNodeHover?: (node: DiagramNode | null) => void;
   /** Dim everything except the hovered node and the edges and nodes connected to it. Default true. */
   highlight?: boolean;
+  /** Let the reader pan and zoom, and show the controls. Default false. */
+  zoom?: boolean;
+  /** Smallest and largest zoom, as a multiple of the drawn size. Default 0.25 and 8. */
+  minZoom?: number;
+  maxZoom?: number;
+  /** Zoom on a bare wheel instead of requiring Ctrl or Cmd. Traps page scroll, so it is off by default. */
+  wheelWithoutModifier?: boolean;
+  /** Labels for the zoom controls, so they can be translated. */
+  labels?: { zoomIn?: string; zoomOut?: string; reset?: string };
 };
 
 const PARTS = '.node, .edge, .edge-label-group';
@@ -49,10 +60,24 @@ function setHighlight(svg: Element, id: string | null): void {
   svg.classList.add('dim');
 }
 
+const focusTarget = (box: NodeBox): Element => box.element.closest('a') ?? box.element;
+
+/** One tab stop for the whole diagram. Arrow keys then move between nodes inside it. */
+function setupRovingFocus(boxes: NodeBox[]): void {
+  boxes.forEach((box, index) => {
+    focusTarget(box).setAttribute('tabindex', index === 0 ? '0' : '-1');
+  });
+}
+
+function moveFocus(boxes: NodeBox[], to: NodeBox): void {
+  for (const box of boxes) focusTarget(box).setAttribute('tabindex', box.id === to.id ? '0' : '-1');
+  (focusTarget(to) as SVGElement & { focus?: () => void }).focus?.();
+}
+
 /**
  * A diagram that reacts to the pointer and keyboard. The SVG is still drawn on the server, so it is
- * visible before any script runs; this component only adds hover highlighting and click callbacks
- * once it loads in the browser. For plain links, set href on a node and use DiagramView instead.
+ * visible before any script runs; this component only adds interaction once it loads in the browser.
+ * For plain links with no interaction, set href on a node and use DiagramView instead.
  */
 export function InteractiveDiagram({
   diagram,
@@ -61,9 +86,15 @@ export function InteractiveDiagram({
   onNodeClick,
   onNodeHover,
   highlight = true,
+  zoom = false,
+  minZoom,
+  maxZoom,
+  wheelWithoutModifier,
+  labels,
   ...options
 }: InteractiveDiagramProps): ReactElement {
   const host = useRef<HTMLDivElement>(null);
+  const viewport = useRef<Viewport | null>(null);
   const handlers = useRef({ onNodeClick, onNodeHover, nodes: diagram.nodes });
   handlers.current = { onNodeClick, onNodeHover, nodes: diagram.nodes };
   const html = useMemo(() => renderSvg(diagram, layout, options), [diagram, layout, JSON.stringify(options)]);
@@ -95,31 +126,87 @@ export function InteractiveDiagram({
       if (node) handlers.current.onNodeClick?.(node, e);
     };
     el.addEventListener('click', activate, { signal });
+
+    const boxes = collectNodes(svg);
+    const edges = collectEdges(svg);
+    setupRovingFocus(boxes);
+
     el.addEventListener(
       'keydown',
       (e) => {
+        const id = nodeId(e.target);
+        if (id === null) return;
+
+        if (isArrowKey(e.key)) {
+          const from = boxes.find((b) => b.id === id);
+          const to = from ? nextNode(from, e.key, boxes, edges) : null;
+          if (to) {
+            e.preventDefault();
+            moveFocus(boxes, to);
+          }
+          return;
+        }
+        if (e.key === 'Home' || e.key === 'End') {
+          const to = e.key === 'Home' ? boxes[0] : boxes[boxes.length - 1];
+          if (to) {
+            e.preventDefault();
+            moveFocus(boxes, to);
+          }
+          return;
+        }
         if (e.key !== 'Enter' && e.key !== ' ') return;
-        if ((e.target as Element).closest('a')) return;
-        if (nodeId(e.target) === null) return;
+        if ((e.target as Element).closest('a')) return; // a link activates itself
         e.preventDefault();
         activate(e);
       },
       { signal },
     );
 
-    if (clickable) {
-      for (const node of svg.querySelectorAll('.node')) {
-        if (node.closest('a')) continue;
-        node.setAttribute('tabindex', '0');
-        node.setAttribute('role', 'button');
-        (node as SVGElement).style.cursor = 'pointer';
+    for (const box of boxes) {
+      if (box.element.closest('a')) continue;
+      if (clickable) {
+        box.element.setAttribute('role', 'button');
+        box.element.style.cursor = 'pointer';
       }
     }
+
+    viewport.current = zoom ? createViewport(svg, { minZoom, maxZoom, wheelWithoutModifier }) : null;
+
     return () => {
       abort.abort();
       setHighlight(svg, null);
+      viewport.current?.destroy();
+      viewport.current = null;
     };
-  }, [html, highlight, clickable]);
+  }, [html, highlight, clickable, zoom, minZoom, maxZoom, wheelWithoutModifier]);
 
-  return <div ref={host} className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  const control = (label: string, glyph: string, action: () => void) => (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={action}
+      style={{ width: 28, height: 28, lineHeight: '26px', cursor: 'pointer' }}
+    >
+      {glyph}
+    </button>
+  );
+
+  return (
+    <div ref={host} className={className} style={zoom ? { position: 'relative' } : undefined}>
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+      {zoom ? (
+        <div
+          className="dg-zoom-controls"
+          style={{ position: 'absolute', insetInlineEnd: 8, insetBlockEnd: 8, display: 'flex', gap: 4 }}
+        >
+          {control(labels?.zoomOut ?? 'Zoom out', '−', () => viewport.current?.zoomBy(1 / 1.3))}
+          {control(labels?.reset ?? 'Fit diagram', '□', () => viewport.current?.reset())}
+          {control(labels?.zoomIn ?? 'Zoom in', '+', () => viewport.current?.zoomBy(1.3))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
+
+export { createViewport, type Viewport, type ViewportOptions } from './viewport.js';

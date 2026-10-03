@@ -38,7 +38,7 @@
 
 ## 7. Interaction and animation
 
-- [ ] 7.1 Implement pan, zoom, fit, and reset with touch-safe page scrolling; verify one-finger scroll scrolls the page and pinch zooms.
+- [x] 7.1 Implement pan, zoom, fit, and reset with touch-safe page scrolling; verify one-finger scroll scrolls the page and pinch zooms.
 - [ ] 7.2 Implement highlighting, collapsible groups, details on demand, and events; verify each in component tests. Done so far: hover highlighting and node click and hover events (InteractiveDiagram). Collapsible groups and details on demand remain.
 - [ ] 7.3 Implement walkthrough mode including the all-steps print view; verify step order and print output.
 - [ ] 7.4 Implement entrance, flow, and transition animation with reduced-motion support; verify nothing animates when the preference is set.
@@ -47,13 +47,13 @@
 ## 8. Accessibility
 
 - [ ] 8.1 Implement accessible names, generated text outlines, and semantic roles; verify with a screen reader pass on a sample diagram.
-- [ ] 8.2 Implement keyboard operation with tab order and arrow navigation; verify through keyboard-only tests.
+- [x] 8.2 Implement keyboard operation with tab order and arrow navigation; verify through keyboard-only tests.
 - [ ] 8.3 Add automated accessibility checks for every element type and example in continuous integration; verify a seeded violation fails the build.
 
 ## 9. Export
 
 - [ ] 9.1 Implement standalone SVG export with inlined styles and font handling; verify the exported file renders correctly outside the page.
-- [ ] 9.2 Implement PNG export with scale and background options, and export theme selection; verify dimensions and palette.
+- [x] 9.2 Implement PNG export with scale and background options, and export theme selection; verify dimensions and palette.
 - [ ] 9.3 Implement Node.js programmatic export without a DOM and print styles; verify a build script produces valid SVG and a printed page fits.
 
 ## 10. Tests
