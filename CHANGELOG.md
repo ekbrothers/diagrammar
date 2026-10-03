@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- `renderPng()` in `diagrammar/server` exports a diagram as a PNG at any scale, in light or dark, with an optional transparent background. It needs the optional `@resvg/resvg-js` package.
+- A `flatten` render option that resolves CSS custom properties to literal colors, so a diagram draws correctly in rasterizers and older SVG viewers, which read CSS classes but not variables.
 - A Claude Code subagent (`.claude/agents/diagrammar.md`, included in the package) that knows the schema, options, icons, and embedding, plus a README introduction and a section on using it.
 - Color icons: an icon marked `color` is drawn as-is instead of following the text color, so brand logos keep their colors. Gradient ids are made unique per use, and icons of any proportion are centered.
 - `registerIconPack(prefix, icons)` to register a set under a prefix (`icon: 'aws:ec2'`).

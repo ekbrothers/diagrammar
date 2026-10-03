@@ -22,6 +22,7 @@ import {
   type Role,
   type Theme,
 } from './theme.js';
+import { flattenCss, flattenInlineStyles } from './flatten.js';
 import { esc, hash, isSafeCssValue, num, safeHref, warnOnce } from './util.js';
 
 export * from './theme.js';
@@ -50,6 +51,12 @@ export interface RenderOptions {
   padding?: number;
   /** Fill the diagram background with the theme background, so it reads well on any page. Default: false. */
   background?: boolean;
+  /**
+   * Resolve CSS custom properties to literal colors. Needed by rasterizers and older viewers,
+   * which read CSS classes but not variables. Requires mode light or dark, and the result can no
+   * longer be re-themed by the host page. Default: false.
+   */
+  flatten?: boolean;
   /** Receives development warnings such as unknown icons. Defaults to console.warn outside production. */
   onWarning?: (message: string) => void;
 }
@@ -435,12 +442,25 @@ export function renderSvg(diagram: Diagram, layout: Layout, options: RenderOptio
   const labelledBy = [title ? `${scope}-title` : '', description ? `${scope}-desc` : ''].filter(Boolean).join(' ');
   const aria = (hasLinks ? ' role="group"' : ' role="img"') + (labelledBy ? ` aria-labelledby="${labelledBy}"` : '');
 
+  let css = buildCss(scope, theme, mode);
+  let nodeMarkup = nodes;
+  if (options.flatten) {
+    if (mode === 'auto') {
+      throw new Error('renderSvg: flatten requires mode "light" or "dark", because a flattened diagram has a single appearance.');
+    }
+    const inline = flattenInlineStyles(nodeMarkup, theme, mode);
+    nodeMarkup = inline.markup;
+    css = flattenCss(css, scope, theme, mode);
+    if (inline.css) css += `
+${inline.css}`;
+  }
+
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" class="${scope}" viewBox="${num(vx)} ${num(vy)} ${width} ${height}" width="${width}" height="${height}" style="max-width:100%;height:auto"${aria}>` +
     (title ? `<title id="${scope}-title">${esc(title)}</title>` : '') +
     (description ? `<desc id="${scope}-desc">${esc(description)}</desc>` : '') +
-    `<style>${buildCss(scope, theme, mode)}</style>` +
+    `<style>${css}</style>` +
     (options.background ? `<rect class="canvas" x="${num(vx)}" y="${num(vy)}" width="${width}" height="${height}" rx="${theme.radius}"/>` : '') +
-    `<g class="groups">${groups}</g><g class="edges">${edgeMarkup}</g><g class="edge-labels">${labels.map(renderLabel).join('')}</g><g class="nodes">${nodes}</g></svg>`
+    `<g class="groups">${groups}</g><g class="edges">${edgeMarkup}</g><g class="edge-labels">${labels.map(renderLabel).join('')}</g><g class="nodes">${nodeMarkup}</g></svg>`
   );
 }

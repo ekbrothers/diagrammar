@@ -15,3 +15,5 @@ export async function renderDiagram(input: unknown, options: RenderDiagramOption
   const layout = await layoutDiagram(diagram, layoutOptions);
   return renderSvg(diagram, layout, render);
 }
+
+export { renderPng, type RenderPngOptions } from './png.js';

@@ -14,7 +14,9 @@ const shared = {
   format: ['esm', 'cjs'] as ('esm' | 'cjs')[],
   sourcemap: true,
   treeshake: true,
-  external: ['react', 'react-dom'],
+  // The rasterizer is optional and ships platform-specific native binaries, so it is loaded
+  // at run time rather than bundled.
+  external: ['react', 'react-dom', '@resvg/resvg-js'],
 };
 
 export default defineConfig([
@@ -35,6 +37,7 @@ export default defineConfig([
   },
   {
     entry: { cli: 'src/cli/bin.ts' },
+    external: ['@resvg/resvg-js'],
     format: ['esm'],
     platform: 'node',
     sourcemap: false,
