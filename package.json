@@ -55,7 +55,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    ".claude/agents/diagrammar.md"
   ],
   "scripts": {
     "build": "tsup",

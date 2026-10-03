@@ -2,7 +2,31 @@
 
 Polished, accessible, server-rendered SVG diagrams for the web.
 
-You describe a diagram as data (or React components). diagrammar validates it, lays it out with [ELK](https://github.com/kieler/elkjs), and returns one self-contained SVG string. No client script, no DOM needed, and the same input always gives the same output.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/examples/cloud.dark.svg">
+  <img alt="A web app on AWS. Visitors reach CloudFront, which serves static files from S3 and sends requests to a load balancer in front of two app servers and a database, inside a region, a VPC, and three subnets." src="docs/examples/cloud.light.svg">
+</picture>
+
+## What it is
+
+diagrammar is a TypeScript library for drawing architecture, cloud, data-flow, and process diagrams. You list the boxes and the arrows between them. It works out where everything goes and gives you back one SVG.
+
+```ts
+const svg = await renderDiagram({
+  nodes: [{ id: 'a', label: 'Client' }, { id: 'b', label: 'API', role: 'primary' }],
+  edges: [{ id: 'e1', from: 'a', to: 'b' }],
+});
+```
+
+Three things set it apart:
+
+- **You describe it, it lays it out.** Positions, edge routing, and the size of groups come from [ELK](https://github.com/kieler/elkjs), a proper graph layout engine. You never drag a box. When you do want one in a fixed spot, you can pin it.
+- **The output is a plain SVG string, made on the server.** It's in your HTML before any script runs, search engines and screen readers can read it, and there's no diagram code in the browser bundle. The same input gives byte-identical output, so a changed diagram shows up cleanly in a code review.
+- **It's made for the web.** Light and dark modes, a high-contrast theme, a title, a description, and per-edge text for assistive technology, real links and tooltips on nodes, and optional hover highlighting when you want interaction.
+
+You can write a diagram as plain data or as React components, and the result is the same. Groups nest, so a region containing a VPC containing subnets is just groups inside groups. There are built-in icons, a few bundled brand logos, and a way to import your own (including the AWS, Google Cloud, and Azure sets, which you download yourself).
+
+It's a good fit for architecture docs, READMEs (GitHub shows these SVGs, light and dark), blog posts, and personal sites. It's not a drawing tool, an editor, or a charting library, and it's aimed at diagrams a person can read: tens of nodes, not thousands.
 
 Status: early development. Schema, authoring, layout, static rendering, theming, icons and logos, and basic interaction work. Animation, swimlanes, ports, and PNG export are still ahead. See [the task list](openspec/changes/bootstrap-diagram-library/tasks.md).
 
@@ -13,6 +37,23 @@ npm install diagrammar
 ```
 
 React is an optional peer dependency. You only need it for `diagrammar/react`.
+
+## Draw with Claude Code
+
+The package includes a [Claude Code](https://claude.com/claude-code) subagent that knows the schema, the layout and render options, the icon system, and how to embed a diagram in a site. Ask it for a diagram in plain words and it writes the definition, renders it, checks that it validates, and tells you where the files are.
+
+Copy it into your project once:
+
+```sh
+mkdir -p .claude/agents
+cp node_modules/diagrammar/.claude/agents/diagrammar.md .claude/agents/
+```
+
+To have it in every project, copy it to `~/.claude/agents/` instead. Then ask for what you want:
+
+> Use the diagrammar agent to draw our checkout flow: the storefront calls the orders API, which writes to Postgres and publishes to a queue that billing and shipping both read.
+
+The agent's instructions are in [.claude/agents/diagrammar.md](.claude/agents/diagrammar.md). Edit your copy to add your project's conventions, such as a preferred layout direction or where diagrams live.
 
 ## Use it
 

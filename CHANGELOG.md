@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-
+- A Claude Code subagent (`.claude/agents/diagrammar.md`, included in the package) that knows the schema, options, icons, and embedding, plus a README introduction and a section on using it.
 - Color icons: an icon marked `color` is drawn as-is instead of following the text color, so brand logos keep their colors. Gradient ids are made unique per use, and icons of any proportion are centered.
 - `registerIconPack(prefix, icons)` to register a set under a prefix (`icon: 'aws:ec2'`).
 - `iconFromSvg()` turns an SVG file into an icon. It rebuilds the markup from an allowlist of shapes and rejects scripts, event handlers, text, and external references.
